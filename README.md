@@ -88,6 +88,5 @@ Each phase will be completed, tested, documented and submitted separately.
 
 ## 10. Project Repository
 
-GitHub: [Insert repository link]
+GitHub: [https://github.com/hassanmohamed6606-cell/mtaafix-community-reporting-system.git]
 
-**Project Status:** Awaiting initial project approval.
