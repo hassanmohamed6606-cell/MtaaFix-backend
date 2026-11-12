@@ -40,3 +40,19 @@ def test_cloudinary_upload_returns_secure_url(monkeypatch):
     image = FileStorage(stream=BytesIO(b"fake image"), filename="issue.jpg", content_type="image/jpeg")
     assert image_service.upload_image(image) == "https://cdn.example/image.jpg"
 
+def test_sendgrid_sends_when_configured(monkeypatch):
+    monkeypatch.setenv("SENDGRID_API_KEY", "test-key")
+    monkeypatch.setenv("MAIL_FROM", "noreply@example.com")
+    import sendgrid
+    from sendgrid.helpers import mail
+
+    class FakeClient:
+        def __init__(self, api_key):
+            assert api_key == "test-key"
+        def send(self, message):
+            return SimpleNamespace(status_code=202)
+
+    monkeypatch.setattr(sendgrid, "SendGridAPIClient", FakeClient)
+    assert email_service.send_email("user@example.com", "Subject", "<p>Body</p>") is True
+
+    
