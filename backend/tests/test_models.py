@@ -10,3 +10,9 @@ def test_user_password_is_hashed_and_verifiable(app):
         assert user.check_password("CorrectHorse1")
         assert not user.check_password("wrong-password")
 
+def test_report_relationship_and_serialization(app):
+    with app.app_context():
+        user = User(name="Amina", email="amina@example.com")
+        user.set_password("CorrectHorse1")
+        db.session.add(user)
+        db.session.flush()
