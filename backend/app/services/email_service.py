@@ -20,3 +20,8 @@ def send_email(to_email, subject, html_content):
     except Exception:
         logger.exception("SendGrid email delivery failed")
         return False
+
+def send_welcome_email(user):
+    return send_email(user.email, "Welcome to MtaaFix",
+                      f"<p>Hello {user.name},</p><p>Your MtaaFix account is ready. Thank you for helping improve your community.</p>")
+
