@@ -16,3 +16,13 @@ def test_report_relationship_and_serialization(app):
         user.set_password("CorrectHorse1")
         db.session.add(user)
         db.session.flush()
+        report = Report(title="Pothole", description="Deep pothole", category="Road Damage",
+          location_name="South B", user_id=user.id)
+        db.session.add(report)
+        db.session.commit()
+        payload = report.to_dict()
+        assert payload["user"]["name"] == "Amina"
+        assert payload["status"] == "Pending"
+        assert payload["location_name"] == "South B"
+
+                        
