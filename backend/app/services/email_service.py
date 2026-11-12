@@ -25,3 +25,7 @@ def send_welcome_email(user):
     return send_email(user.email, "Welcome to MtaaFix",
                       f"<p>Hello {user.name},</p><p>Your MtaaFix account is ready. Thank you for helping improve your community.</p>")
 
+def send_report_notification(report, event="created"):
+    return send_email(report.author.email, f"Your MtaaFix report was {event}",
+                      f"<p>Hello {report.author.name},</p><p>Your report <strong>{report.title}</strong> was {event}.</p><p>Status: {report.status}</p>")
+
