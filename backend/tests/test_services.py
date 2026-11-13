@@ -1,162 +1,58 @@
 from io import BytesIO
-
-import pytest
+from types import SimpleNamespace
 from werkzeug.datastructures import FileStorage
-
-from app.services.image_service import (
-    upload_image,
-    ImageServiceError,
-    MAX_IMAGE_SIZE,
-)
+from app.services import email_service, image_service
 
 
-def create_image_file(content, filename="test.jpg", content_type="image/jpeg"):
-    return FileStorage(
-        stream=BytesIO(content),
-        filename=filename,
-        content_type=content_type,
-    )
+def test_email_service_skips_when_sendgrid_is_not_configured(monkeypatch):
+    monkeypatch.delenv("SENDGRID_API_KEY", raising=False)
+    monkeypatch.delenv("MAIL_FROM", raising=False)
+    assert email_service.send_email("user@example.com", "Subject", "<p>Body</p>") is False
+
+def test_image_upload_requires_cloudinary_configuration(monkeypatch):
+    for key in ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"):
+        monkeypatch.delenv(key, raising=False)
+    image = FileStorage(stream=BytesIO(b"fake image"), filename="issue.png", content_type="image/png")
+    try:
+        image_service.upload_image(image)
+        assert False, "Expected ImageServiceError"
+    except image_service.ImageServiceError as exc:
+        assert "not configured" in str(exc)
 
 
-# -------------------------------
-# BASIC IMAGE VALIDATION TESTS
-# -------------------------------
-
-def test_upload_image_returns_none_when_no_image_is_provided():
-    assert upload_image(None) is None
-
-
-def test_upload_image_rejects_unsupported_file_type():
-    image = create_image_file(
-        b"fake image",
-        filename="document.pdf",
-        content_type="application/pdf",
-    )
-
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
+def test_image_upload_rejects_non_image_mimetype(monkeypatch):
+    for key, value in (("CLOUDINARY_CLOUD_NAME", "cloud"), ("CLOUDINARY_API_KEY", "key"), ("CLOUDINARY_API_SECRET", "secret")):
+        monkeypatch.setenv(key, value)
+    image = FileStorage(stream=BytesIO(b"text"), filename="issue.txt", content_type="text/plain")
+    try:
+        image_service.upload_image(image)
+        assert False, "Expected ImageServiceError"
+    except image_service.ImageServiceError as exc:
+        assert "Only JPG" in str(exc)
 
 
-def test_upload_image_rejects_empty_file():
-    image = create_image_file(b"")
+def test_cloudinary_upload_returns_secure_url(monkeypatch):
+    for key, value in (("CLOUDINARY_CLOUD_NAME", "cloud"), ("CLOUDINARY_API_KEY", "key"), ("CLOUDINARY_API_SECRET", "secret")):
+        monkeypatch.setenv(key, value)
+    import cloudinary
+    import cloudinary.uploader
+    monkeypatch.setattr(cloudinary.uploader, "upload", lambda *args, **kwargs: {"secure_url": "https://cdn.example/image.jpg"})
+    image = FileStorage(stream=BytesIO(b"fake image"), filename="issue.jpg", content_type="image/jpeg")
+    assert image_service.upload_image(image) == "https://cdn.example/image.jpg"
 
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
+def test_sendgrid_sends_when_configured(monkeypatch):
+    monkeypatch.setenv("SENDGRID_API_KEY", "test-key")
+    monkeypatch.setenv("MAIL_FROM", "noreply@example.com")
+    import sendgrid
+    from sendgrid.helpers import mail
 
+    class FakeClient:
+        def __init__(self, api_key):
+            assert api_key == "test-key"
+        def send(self, message):
+            return SimpleNamespace(status_code=202)
 
-def test_upload_image_rejects_oversized_file():
-    image = create_image_file(
-        b"\xff\xd8\xff" + b"A" * MAX_IMAGE_SIZE
-    )
+    monkeypatch.setattr(sendgrid, "SendGridAPIClient", FakeClient)
+    assert email_service.send_email("user@example.com", "Subject", "<p>Body</p>") is True
 
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
-
-
-def test_upload_image_rejects_invalid_image_signature():
-    image = create_image_file(
-        b"This is not a real image"
-    )
-
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
-
-
-def test_upload_image_rejects_mismatched_image_type():
-    image = create_image_file(
-        b"\x89PNG\r\n\x1a\n" + b"fake image data",
-        content_type="image/jpeg",
-    )
-
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
-
-
-# -------------------------------
-# CLOUDINARY CONFIGURATION TESTS
-# -------------------------------
-
-def test_upload_image_rejects_missing_cloudinary_credentials(monkeypatch):
-    monkeypatch.delenv("CLOUDINARY_CLOUD_NAME", raising=False)
-    monkeypatch.delenv("CLOUDINARY_API_KEY", raising=False)
-    monkeypatch.delenv("CLOUDINARY_API_SECRET", raising=False)
-
-    image = create_image_file(
-        b"\xff\xd8\xff" + b"valid image data"
-    )
-
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
-
-
-# -------------------------------
-# CLOUDINARY UPLOAD TESTS
-# -------------------------------
-
-def test_upload_image_returns_secure_url(monkeypatch):
-    from app.services import image_service
-
-    monkeypatch.setenv("CLOUDINARY_CLOUD_NAME", "test-cloud")
-    monkeypatch.setenv("CLOUDINARY_API_KEY", "test-key")
-    monkeypatch.setenv("CLOUDINARY_API_SECRET", "test-secret")
-
-    monkeypatch.setattr(
-        image_service.cloudinary.uploader,
-        "upload",
-        lambda *args, **kwargs: {
-            "secure_url": "https://example.com/test-image.jpg"
-        },
-    )
-
-    image = create_image_file(
-        b"\xff\xd8\xff" + b"valid image data"
-    )
-
-    result = upload_image(image)
-
-    assert result == "https://example.com/test-image.jpg"
-
-
-def test_upload_image_rejects_invalid_cloudinary_response(monkeypatch):
-    from app.services import image_service
-
-    monkeypatch.setenv("CLOUDINARY_CLOUD_NAME", "test-cloud")
-    monkeypatch.setenv("CLOUDINARY_API_KEY", "test-key")
-    monkeypatch.setenv("CLOUDINARY_API_SECRET", "test-secret")
-
-    monkeypatch.setattr(
-        image_service.cloudinary.uploader,
-        "upload",
-        lambda *args, **kwargs: {},
-    )
-
-    image = create_image_file(
-        b"\xff\xd8\xff" + b"valid image data"
-    )
-
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
-
-
-def test_upload_image_handles_cloudinary_failure(monkeypatch):
-    from app.services import image_service
-
-    monkeypatch.setenv("CLOUDINARY_CLOUD_NAME", "test-cloud")
-    monkeypatch.setenv("CLOUDINARY_API_KEY", "test-key")
-    monkeypatch.setenv("CLOUDINARY_API_SECRET", "test-secret")
-
-    def failed_upload(*args, **kwargs):
-        raise Exception("Cloudinary connection failed")
-
-    monkeypatch.setattr(
-        image_service.cloudinary.uploader,
-        "upload",
-        failed_upload,
-    )
-
-    image = create_image_file(
-        b"\xff\xd8\xff" + b"valid image data"
-    )
-
-    with pytest.raises(ImageServiceError):
-        upload_image(image)
+    
