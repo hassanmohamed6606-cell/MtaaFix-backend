@@ -9,7 +9,7 @@ def app():
     application = create_app({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite://",
-        "JWT_SECRET_KEY": "test-jwt-secret",
+        "JWT_SECRET_KEY": "test-jwt-secret-key-for-testing-only-32-bytes-minimum",
         "SECRET_KEY": "test-secret",
         "AUTO_CREATE_DB": False,
         "FRONTEND_ORIGIN": "http://localhost:5173",
