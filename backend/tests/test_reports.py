@@ -97,3 +97,35 @@ def test_create_report_with_cloudinary_image(client, resident_token, monkeypatch
     response = client.post("/api/reports", data=data, headers=auth(resident_token), content_type="multipart/form-data")
     assert response.status_code == 201
     assert response.get_json()["report"]["image_url"] == "https://cdn.example/report.jpg"
+
+def test_admin_can_edit_and_delete_other_residents_report(
+    client, resident_token, admin_token, monkeypatch
+):
+    monkeypatch.setattr(
+        "app.routes.reports.send_report_notification",
+        lambda *args: True
+    )
+
+    created = client.post(
+        "/api/reports",
+        json=payload(),
+        headers=auth(resident_token)
+    ).get_json()["report"]
+
+    report_id = created["id"]
+
+    updated = client.put(
+        f"/api/reports/{report_id}",
+        json={"title": "Admin updated report"},
+        headers=auth(admin_token)
+    )
+
+    assert updated.status_code == 200
+    assert updated.get_json()["report"]["title"] == "Admin updated report"
+
+    deleted = client.delete(
+        f"/api/reports/{report_id}",
+        headers=auth(admin_token)
+    )
+
+    assert deleted.status_code == 200
