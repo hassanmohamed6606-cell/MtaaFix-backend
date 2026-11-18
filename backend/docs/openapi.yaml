@@ -1,0 +1,334 @@
+
+openapi: 3.0.3
+
+info:
+  title: MtaaFix API
+  description: API documentation for the MtaaFix community issue reporting system.
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: MtaaFix backend server
+
+tags:
+  - name: Health
+  - name: Authentication
+  - name: Reports
+
+paths:
+
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: Check API status
+      responses:
+        '200':
+          description: API is running
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new resident
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: Jane Resident
+                email:
+                  type: string
+                  example: jane@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: password123
+      responses:
+        '201':
+          description: Account created successfully
+        '400':
+          description: Invalid registration information
+        '409':
+          description: Email already exists
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Log in to MtaaFix
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid credentials
+
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User information
+        '401':
+          description: Unauthorized
+
+  /api/reports:
+    get:
+      tags:
+        - Reports
+      summary: Get all community reports
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reports retrieved successfully
+
+    post:
+      tags:
+        - Reports
+      summary: Create a new community report
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportInput'
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ReportInput'
+                - type: object
+                  properties:
+                    image:
+                      type: string
+                      format: binary
+      responses:
+        '201':
+          description: Report created successfully
+        '400':
+          description: Invalid report information
+        '401':
+          description: Unauthorized
+
+  /api/reports/mine:
+    get:
+      tags:
+        - Reports
+      summary: Get reports created by the logged-in user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User reports retrieved successfully
+        '401':
+          description: Unauthorized
+
+  /api/reports/{report_id}:
+    parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: integer
+
+    get:
+      tags:
+        - Reports
+      summary: Get a specific report
+      responses:
+        '200':
+          description: Report retrieved successfully
+        '404':
+          description: Report not found
+
+    put:
+      tags:
+        - Reports
+      summary: Update an existing report
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportUpdate'
+      responses:
+        '200':
+          description: Report updated successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Permission denied
+        '404':
+          description: Report not found
+
+    delete:
+      tags:
+        - Reports
+      summary: Delete a report
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Report deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Permission denied
+        '404':
+          description: Report not found
+
+  /api/reports/{report_id}/status:
+    patch:
+      tags:
+        - Reports
+      summary: Update report status (administrator only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - Pending
+                    - In Progress
+                    - Resolved
+      responses:
+        '200':
+          description: Report status updated
+        '401':
+          description: Unauthorized
+        '403':
+          description: Administrator access required
+        '404':
+          description: Report not found
+
+components:
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    ReportInput:
+      type: object
+      required:
+        - title
+        - description
+        - category
+        - location_name
+      properties:
+        title:
+          type: string
+          example: Damaged road
+        description:
+          type: string
+          example: Large pothole on the road
+        category:
+          type: string
+          enum:
+            - Road Damage
+            - Waste Management
+            - Streetlight
+            - Drainage
+            - Water
+            - Public Facility
+            - Other
+        location_name:
+          type: string
+          example: Nairobi CBD
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        image_url:
+          type: string
+          nullable: true
+
+    ReportUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        location_name:
+          type: string
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        image_url:
+          type: string
+          nullable: true

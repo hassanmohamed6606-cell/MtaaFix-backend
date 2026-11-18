@@ -1,4 +1,6 @@
-from flask import Flask, jsonify
+
+from flask import Flask, jsonify, render_template_string, send_from_directory
+from pathlib import Path
 from flask_cors import CORS
 from app.config import Config
 from app.extensions import db, jwt, migrate
@@ -9,14 +11,57 @@ from app.routes import auth_bp, reports_bp
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object(Config)
+
     if test_config:
         app.config.update(test_config)
+
     CORS(app, resources={r"/api/*": {"origins": app.config["FRONTEND_ORIGIN"]}})
+
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(reports_bp)
+
+    # Swagger: serve OpenAPI specification
+    @app.get("/openapi.yaml")
+    def openapi_spec():
+        docs_folder = Path(app.root_path).parent / "docs"
+        return send_from_directory(
+            str(docs_folder),
+            "openapi.yaml",
+            mimetype="application/yaml"
+        )
+
+    # Swagger: interactive API documentation
+    @app.get("/docs")
+    def swagger_docs():
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>MtaaFix API Documentation</title>
+            <link rel="stylesheet"
+                  href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+        </head>
+        <body>
+            <div id="swagger-ui"></div>
+
+            <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+
+            <script>
+                window.onload = function() {
+                    SwaggerUIBundle({
+                        url: "/openapi.yaml",
+                        dom_id: "#swagger-ui",
+                        persistAuthorization: true
+                    });
+                };
+            </script>
+        </body>
+        </html>
+        """)
 
     @app.get("/api/health")
     def health():
@@ -29,4 +74,5 @@ def create_app(test_config=None):
     if app.config.get("AUTO_CREATE_DB"):
         with app.app_context():
             db.create_all()
+
     return app
