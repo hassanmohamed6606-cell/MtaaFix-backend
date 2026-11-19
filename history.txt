@@ -1,0 +1,176 @@
+* 359530e Mohamed Hassan Add Swagger API documentation
+| 
+|  backend/app/__init__.py   |  48 ++++++-
+|  backend/docs/openapi.yaml | 334 ++++++++++++++++++++++++++++++++++++++++++++
+|  2 files changed, 381 insertions(+), 1 deletion(-)
+* ce48a36 Mohamed Hassan Prepare backend for PostgreSQL deployment
+| 
+|  backend/app/config.py    |  49 +++++++++++++++++++++++++++++++++++++++------
+|  backend/requirements.txt | Bin 1396 -> 1446 bytes
+|  2 files changed, 43 insertions(+), 6 deletions(-)
+* d162bda Mohamed Hassan Update SQLAlchemy dependency
+| 
+|  backend/requirements.txt | Bin 1398 -> 1396 bytes
+|  1 file changed, 0 insertions(+), 0 deletions(-)
+* 847209e Mohamed Hassan Add admin report ownership permission test
+| 
+|  backend/tests/test_reports.py | 34 +++++++++++++++++++++++++++++++++-
+|  1 file changed, 33 insertions(+), 1 deletion(-)
+* 77b3768 Mohamed Hassan Fix test image validation and JWT warnings
+| 
+|  backend/tests/conftest.py      |  2 +-
+|  backend/tests/test_services.py | 78 +++++++++++++++++++++++++++++++++-------
+|  2 files changed, 66 insertions(+), 14 deletions(-)
+* 31fe25f Mohamed Hassan Complete Cloudinary image upload integration
+| 
+|  backend/test_cloudinary.py | 47 ++++++++++++++++++++++++++++++++++++++++++++
+|  1 file changed, 47 insertions(+)
+* 484af02 Mohamed Hassan Complete SendGrid email integration
+| 
+|  backend/.env.example     |  2 +-
+|  backend/Pipfile          | 49 ++++++++++++++++++++++++++++++++++++++++++++++
+|  backend/test_sendgrid.py | 33 +++++++++++++++++++++++++++++++
+|  3 files changed, 83 insertions(+), 1 deletion(-)
+*   b08231f Hassannii Merge pull request #6 from hassanmohamed6606-cell/Abdimajid/feature-reportManagement
+|\  
+| * 83caf93 Abdulmajid Implement Report model with CRUD attributes and methods
+| | 
+| |  backend/app/models/report.py | 34 ++++++++++++++++++++++++++++++++++
+| |  1 file changed, 34 insertions(+)
+* | 918a062 Hassannii Merge pull request #5 from hassanmohamed6606-cell/Abdimajid/feature-reportManagement
+|\| 
+| * 19ad66b Abdulmajid Add comprehensive tests for report management functionality
+| | 
+| |  backend/tests/test_reports.py | 99 +++++++++++++++++++++++++++++++++++++++
+| |  1 file changed, 99 insertions(+)
+| * e10bbbf Abdulmajid Implement report management endpoints for CRUD operations
+| | 
+| |  backend/app/routes/reports.py | 147 ++++++++++++++++++++++++++++++++++++++
+| |  1 file changed, 147 insertions(+)
+* |   a57c685 Hassannii Merge pull request #4 from hassanmohamed6606-cell/Joseph/feature-emailService
+|\ \  
+| * \   e93ead4 Hassannii Merge branch 'main' into Joseph/feature-emailService
+| |\ \  
+| |/ /  
+|/| |   
+* | |   0436d06 Hassannii Merge pull request #3 from hassanmohamed6606-cell/Mustapha/feature-authentication
+|\ \ \  
+| * | | 4491137 maminmustaf worked on auth.py,user.py and test.py
+| | |/  
+| |/|   
+| | |   
+| | |    backend/app/models/user.py | 27 ++++++++++++++++++++++
+| | |    backend/app/routes/auth.py | 46 ++++++++++++++++++++++++++++++++++++++
+| | |    backend/tests/test_auth.py | 43 +++++++++++++++++++++++++++++++++++
+| | |    3 files changed, 116 insertions(+)
+* | |   cd558ac phase 1 project Merge pull request #2 from hassanmohamed6606-cell/Erick/feature-BackendTesting
+|\ \ \  
+| * | | 3a6545f Ericktooshy finals tests
+| | | | 
+| | | |  backend/tests/test_models.py | 10 ++++++++++
+| | | |  1 file changed, 10 insertions(+)
+| * | | 4a35f69 Ericktooshy testing user report
+| | | | 
+| | | |  backend/tests/test_models.py | 6 ++++++
+| | | |  1 file changed, 6 insertions(+)
+| * | | d628936 Ericktooshy testing the passwords and verification
+| |/ /  
+| | |   
+| | |    backend/tests/test_models.py | 11 +++++++++++
+| | |    1 file changed, 11 insertions(+)
+* | |   a19ba08 Hassannii Merge pull request #1 from hassanmohamed6606-cell/Levo/feature-validation
+|\ \ \  
+| |/ /  
+|/| |   
+| * | 13f3069 levisnelson54-wq Implement validators and image service with tests
+|/ /  
+| |   
+| |    backend/app/services/image_service.py | 150 +++++++++++++++++++
+| |    backend/app/utils/validators.py       | 141 ++++++++++++++++++
+| |    backend/tests/test_services.py        | 162 +++++++++++++++++++++
+| |    backend/tests/test_validators.py      | 218 ++++++++++++++++++++++++++++
+| |    4 files changed, 671 insertions(+)
+| * 28e2f9b Josephhh-web refactor(services): improve email message formatting and structure
+| | 
+| |  backend/app/services/email_service.py | 34 +++++++++++++++++++++++++------
+| |  1 file changed, 28 insertions(+), 6 deletions(-)
+| * 10b99f1 Josephhh-web test(services): add mocked unit test for SendGrid email delivery
+| | 
+| |  backend/tests/test_services.py | 16 ++++++++++++++++
+| |  1 file changed, 16 insertions(+)
+| * ae98162 Josephhh-web test(services): add unit tests for Cloudinary image upload validation
+| | 
+| |  backend/tests/test_services.py | 31 +++++++++++++++++++++++++++++++
+| |  1 file changed, 31 insertions(+)
+| * eea3e66 Josephhh-web test(services): add test for skipping email when SendGrid is unconfigured
+| | 
+| |  backend/tests/test_services.py | 11 +++++++++++
+| |  1 file changed, 11 insertions(+)
+| * a9b73ea Josephhh-web feat(services): add send_report_notification helper for report status updates
+| | 
+| |  backend/app/services/email_service.py | 4 ++++
+| |  1 file changed, 4 insertions(+)
+| * ee10797 Josephhh-web feat(services): add send_welcome_email helper for new user onboarding
+| | 
+| |  backend/app/services/email_service.py | 5 +++++
+| |  1 file changed, 5 insertions(+)
+| * 01571fe Josephhh-web feat(services): implement SendGrid send_email function with error handling
+| | 
+| |  backend/app/services/email_service.py | 18 ++++++++++++++++++
+| |  1 file changed, 18 insertions(+)
+| * e53ad11 Josephhh-web chore(services): initialize module imports and logger in email_service
+|/  
+|   
+|    backend/app/services/email_service.py | 3 +++
+|    1 file changed, 3 insertions(+)
+* 51b1c3a Mohamed Hassan created folder structure
+| 
+|  backend/.env.example                              |  15 ++++++
+|  backend/.gitignore                                |  14 +++++
+|  backend/README.md                                 |  31 +++++++++++
+|  backend/app/__init__.py                           |  32 +++++++++++
+|  backend/app/config.py                             |  12 +++++
+|  backend/app/extensions.py                         |   8 +++
+|  backend/app/models/__init__.py                    |   4 ++
+|  backend/app/models/report.py                      |   0
+|  backend/app/models/user.py                        |   1 +
+|  backend/app/routes/__init__.py                    |   4 ++
+|  backend/app/routes/auth.py                        |   0
+|  backend/app/routes/reports.py                     |   0
+|  backend/app/services/__init__.py                  |   1 +
+|  backend/app/services/email_service.py             |   1 +
+|  backend/app/services/image_service.py             |   0
+|  backend/app/utils/__init__.py                     |   1 +
+|  backend/app/utils/validators.py                   |   0
+|  backend/migrations/alembic.ini                    |  37 +++++++++++++
+|  backend/migrations/env.py                         |  40 ++++++++++++++
+|  backend/migrations/script.py.mako                 |  22 ++++++++
+|  .../migrations/versions/0001_initial_schema.py    |  53 ++++++++++++++++++
+|  backend/migrations/versions/__init__.py           |   1 +
+|  backend/pytest.ini                                |   4 ++
+|  backend/requirements.txt                          | Bin 0 -> 1398 bytes
+|  backend/run.py                                    |   9 ++++
+|  backend/seed_admin.py                             |  19 +++++++
+|  backend/tests/conftest.py                         |  57 ++++++++++++++++++++
+|  backend/tests/test_auth.py                        |   0
+|  backend/tests/test_models.py                      |   1 +
+|  backend/tests/test_reports.py                     |   0
+|  backend/tests/test_services.py                    |   0
+|  backend/tests/test_validators.py                  |   0
+|  32 files changed, 367 insertions(+)
+* 8be1414 Mohamed Hassan update README
+| 
+|  README.md | 106 ++++++++++++++----------------------------------------------
+|  1 file changed, 25 insertions(+), 81 deletions(-)
+* 657d6c2 Hassannii Update README.md
+| 
+|  README.md | 3 +--
+|  1 file changed, 1 insertion(+), 2 deletions(-)
+* 0156aa7 Hassannii Update README.md
+| 
+|  README.md | 95 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+|  1 file changed, 93 insertions(+), 2 deletions(-)
+* 0eeeb43 Hassannii Initial commit
+  
+   README.md | 2 ++
+   1 file changed, 2 insertions(+)
