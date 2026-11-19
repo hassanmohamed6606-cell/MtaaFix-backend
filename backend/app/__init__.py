@@ -90,6 +90,8 @@ def create_app(test_config=None):
                 database="connected",
                 dialect=db.engine.dialect.name,
                 driver=db.engine.dialect.driver
+                database_url_present=bool(os.getenv("DATABASE_URL")),
+                configured_database=app.config["SQLALCHEMY_DATABASE_URI"].split(":")[0]
             ), 200
 
         except Exception:
