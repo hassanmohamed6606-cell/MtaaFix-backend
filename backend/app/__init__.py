@@ -67,6 +67,18 @@ def create_app(test_config=None):
     def health():
         return jsonify(status="ok", message="MtaaFix API is running.")
 
+    @app.get("/api/db-health")
+    def db_health():
+        from sqlalchemy import text
+
+        try:
+            db.session.execute(text("SELECT 1"))
+            return jsonify(status="ok", database="connected"), 200
+        except Exception:
+            app.logger.exception("Database connection test failed")
+            db.session.rollback()
+            return jsonify(status="error", database="unavailable"), 503
+
     @app.errorhandler(413)
     def too_large(_error):
         return jsonify(error="Image is too large. Maximum upload size is 8 MB."), 413
