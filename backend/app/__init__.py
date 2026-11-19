@@ -4,7 +4,7 @@ from pathlib import Path
 from flask_cors import CORS
 from app.config import Config
 from app.extensions import db, jwt, migrate
-from app.models import Report, User  # noqa: F401 - register models with SQLAlchemy
+from app.models import Report, User  # noqa: F401 - register models
 from app.routes import auth_bp, reports_bp
 
 
@@ -15,7 +15,14 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    CORS(app, resources={r"/api/*": {"origins": app.config["FRONTEND_ORIGIN"]}})
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": app.config["FRONTEND_ORIGIN"]
+            }
+        }
+    )
 
     db.init_app(app)
     jwt.init_app(app)
@@ -47,7 +54,6 @@ def create_app(test_config=None):
         </head>
         <body>
             <div id="swagger-ui"></div>
-
             <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
 
             <script>
@@ -63,26 +69,46 @@ def create_app(test_config=None):
         </html>
         """)
 
+    # API health check
     @app.get("/api/health")
     def health():
-        return jsonify(status="ok", message="MtaaFix API is running.")
+        return jsonify(
+            status="ok",
+            message="MtaaFix API is running."
+        )
 
+    # Database health and engine diagnostic
     @app.get("/api/db-health")
     def db_health():
         from sqlalchemy import text
 
         try:
             db.session.execute(text("SELECT 1"))
-            return jsonify(status="ok", database="connected"), 200
+
+            return jsonify(
+                status="ok",
+                database="connected",
+                dialect=db.engine.dialect.name,
+                driver=db.engine.dialect.driver
+            ), 200
+
         except Exception:
             app.logger.exception("Database connection test failed")
             db.session.rollback()
-            return jsonify(status="error", database="unavailable"), 503
 
+            return jsonify(
+                status="error",
+                database="unavailable"
+            ), 503
+
+    # Handle oversized uploads
     @app.errorhandler(413)
     def too_large(_error):
-        return jsonify(error="Image is too large. Maximum upload size is 8 MB."), 413
+        return jsonify(
+            error="Image is too large. Maximum upload size is 8 MB."
+        ), 413
 
+    # Create database tables if enabled
     if app.config.get("AUTO_CREATE_DB"):
         with app.app_context():
             db.create_all()
