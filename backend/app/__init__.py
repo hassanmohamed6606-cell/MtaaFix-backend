@@ -16,14 +16,17 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    CORS(
-        app,
-        resources={
-            r"/api/*": {
-                "origins": app.config["FRONTEND_ORIGIN"]
-            }
+  CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:5173",
+                "https://mtaafix-client.vercel.app/"
+            ]
         }
-    )
+    }
+)
 
     db.init_app(app)
     jwt.init_app(app)
