@@ -1,8 +1,10 @@
-import os 
 
-from flask import Flask, jsonify, render_template_string, send_from_directory
+import os
+
 from pathlib import Path
+from flask import Flask, jsonify, render_template_string, send_from_directory
 from flask_cors import CORS
+
 from app.config import Config
 from app.extensions import db, jwt, migrate
 from app.models import Report, User  # noqa: F401 - register models
@@ -16,22 +18,25 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-  CORS(
-    app,
-    resources={
-        r"/api/*": {
-            "origins": [
-                "http://localhost:5173",
-                "https://mtaafix-client.vercel.app/"
-            ]
+    # CORS configuration: allow local development and deployed frontend
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "https://mtaafix-client.vercel.app"
+                ]
+            }
         }
-    }
-)
+    )
 
+    # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
 
+    # Register API blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(reports_bp)
 
@@ -95,7 +100,9 @@ def create_app(test_config=None):
                 dialect=db.engine.dialect.name,
                 driver=db.engine.dialect.driver,
                 database_url_present=bool(os.getenv("DATABASE_URL")),
-                configured_database=app.config["SQLALCHEMY_DATABASE_URI"].split(":")[0]
+                configured_database=app.config[
+                    "SQLALCHEMY_DATABASE_URI"
+                ].split(":")[0]
             ), 200
 
         except Exception:
