@@ -25,11 +25,11 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    # CORS configuration: allow local and deployed frontend
+    # CORS configuration
     CORS(
         app,
         resources={
-            r"/api/*": {
+            r"/*": {
                 "origins": [
                     "http://localhost:5175",
                     "https://mtaafix-client2.vercel.app",
