@@ -24,8 +24,8 @@ def create_app(test_config=None):
         resources={
             r"/api/*": {
                 "origins": [
-                    "http://localhost:5173",
-                    "https://mtaafix-client.vercel.app"
+                    "http://localhost:5175/",
+                    "mtaafix-client2.vercel.app"
                 ]
             }
         }
