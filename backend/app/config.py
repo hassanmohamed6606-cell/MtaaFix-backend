@@ -1,8 +1,10 @@
+
 import os
+
 
 database_url = os.getenv(
     "DATABASE_URL",
-    "sqlite:///mtaafix.db"
+    "sqlite:///mtaafix.db",
 )
 
 # Normalize Render PostgreSQL URLs for psycopg 3
@@ -10,26 +12,29 @@ if database_url.startswith("postgres://"):
     database_url = database_url.replace(
         "postgres://",
         "postgresql+psycopg://",
-        1
+        1,
     )
 elif database_url.startswith("postgresql://"):
     database_url = database_url.replace(
         "postgresql://",
         "postgresql+psycopg://",
-        1
+        1,
     )
 
 
 class Config:
     SECRET_KEY = os.getenv(
         "SECRET_KEY",
-        "local-development-secret-change-me"
+        "local-development-secret-change-me",
     )
 
     JWT_SECRET_KEY = os.getenv(
         "JWT_SECRET_KEY",
-        "local-development-jwt-secret-change-me"
+        "local-development-jwt-secret-change-me",
     )
+
+    # Used to encrypt authenticator secrets
+    TOTP_ENCRYPTION_KEY = os.getenv("TOTP_ENCRYPTION_KEY")
 
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -38,12 +43,12 @@ class Config:
 
     FRONTEND_ORIGIN = os.getenv(
         "FRONTEND_ORIGIN",
-        "http://localhost:5173"
+        "http://localhost:5173",
     )
 
     AUTO_CREATE_DB = os.getenv(
         "AUTO_CREATE_DB",
-        "true"
+        "true",
     ).lower() == "true"
 
     MAX_CONTENT_LENGTH = 8 * 1024 * 1024
